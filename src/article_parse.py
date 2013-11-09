@@ -12,7 +12,7 @@ def usage(command):
 def analyze(url):
     a = Analyzer(url = sys.argv[1])
     a.parse_sections(threshold = 50)
-    sections = a.get_main_sections(threshold = 20.0)
+    sections = a.get_main_sections(threshold = 5.0)
     
     for item in sections:
         print item

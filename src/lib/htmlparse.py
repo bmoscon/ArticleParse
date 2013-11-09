@@ -106,7 +106,8 @@ class HtmlParse(object):
     def convert(self, convert_list):
         i = 0
         while i < len(convert_list):
-            self.parsed = re.sub(r"<%s.*?>" %convert_list[i], convert_list[i + 1], self.parsed)
+            self.parsed = re.sub(r"<%s.*?>" %convert_list[i], "<"+convert_list[i + 1]+">", 
+                                 self.parsed)
             i += 2
             
         
