@@ -112,7 +112,7 @@ class Analyzer(object):
     # if the largest section is 5000 characters, and the threshold is 50.0,
     # only sections with a size that are at least 2500 characters (50% of largest
     # section size) will be retained
-    def get_main_sections(self, threshold = 25.0):
+    def get_main_sections(self, threshold = 25.0, density_threshold = 0.1):
         # sort by length, then reverse so we are sorted in descending order
         self.sections.sort(key = operator.attrgetter('length'))
         self.sections.reverse()
@@ -127,12 +127,12 @@ class Analyzer(object):
             percentage = float(section_length) / float(base) * 100.0
             anchor_delta = abs(base_anchor - section.anchor_density())
             if percentage >= threshold:
-                # to do - something meaninful here
-                # currently it excludes sections with anchor densities that differ by more than
-                # 10% from the base section. Reasoning is that the navigation sections at the 
-                # top and bottom of the page are typically long in length (and would not be
-                # excluded due to the other thresholds) but have link densities of nearly 100%
-                if anchor_delta < 0.01:
+                # excludes sections with anchor densities that differ by more than
+                # density_threshold from the base section. Reasoning is that the navigation 
+                # sections at the top and bottom of the page are typically long in length 
+                # (and would not be excluded due to the other thresholds) 
+                # but have very high link densities 
+                if anchor_delta < density_threshold:
                     ret.append(section.txt())
             else:
                 # since we are sorted, once we are failing the threshold test
