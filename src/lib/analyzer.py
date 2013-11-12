@@ -63,13 +63,15 @@ class Section(object):
 
 
 class Analyzer(object):
-    def __init__(self, url = None, content = None):
+    def __init__(self, url = None, content = None, fp = None):
         if url:
             self.parser = HtmlParse(url = url)
         elif content:
             self.parser = HtmlParse(content = content)
+        elif fp:
+            self.parser = HtmlParse(fp = fp)
         else:
-            raise TypeError("must supply a URL or HTML content")
+            raise TypeError("must supply a URL, File, or HTML content")
 
         self.sections = []
 

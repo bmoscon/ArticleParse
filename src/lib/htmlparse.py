@@ -43,13 +43,16 @@ import urllib
 
 
 class HtmlParse(object):
-    def __init__(self, url = None, content = None, initial_parse = True):
+    def __init__(self, url = None, content = None, fp = None, initial_parse = True):
         if url:
             self.html = urllib.urlopen(url).read()
         elif content:
             self.html = content
+        elif fp:
+            with open(fp, "r") as f:
+                self.html = f.read()
         else:
-            raise TypeError("must supply a URL or HTML content")
+            raise TypeError("must supply a URL, File, or HTML content")
 
         self.parsed = self.html
 
