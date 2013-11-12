@@ -74,7 +74,7 @@ class Analyzer(object):
         self.sections = []
 
     # threshold is the minimum length section to consider
-    def parse_sections(self, threshold = 25):
+    def parse_sections(self, threshold):
         self.parser.isolate_body()
         # retain these tags for analysis
         self.parser.strip(retain_list = ["div", "/div", "span", "/span", "a", "/a"])
@@ -112,7 +112,7 @@ class Analyzer(object):
     # if the largest section is 5000 characters, and the threshold is 50.0,
     # only sections with a size that are at least 2500 characters (50% of largest
     # section size) will be retained
-    def get_main_sections(self, threshold = 25.0, density_threshold = 0.1):
+    def get_main_sections(self, threshold, density_threshold):
         # sort by length, then reverse so we are sorted in descending order
         self.sections.sort(key = operator.attrgetter('length'))
         self.sections.reverse()
