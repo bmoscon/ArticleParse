@@ -43,11 +43,87 @@ import operator
 import re
 
 class Section(object):
-    def __init__(self, text, length, anchor, density):
-        self.text = text
-        self.length = length
-        self.anchors = anchor
-        self.density = density
+    def __init__(self, sec):
+        # incoming section data should still have the anchor tags
+        # so lets parse those out first
+        self.a_count, self.a_density, self.text = self.__anchor_analysis(sec)
+        self.length = len(self.text)
+        self.w_count, self.avg_w_len = self.__word_analysis()
+        self.s_count, self.avg_s_len = self.__sentence_analysis()
+
+
+    # returns number of anchors and anchor density (length of anchors / length of section) 
+    def __anchor_analysis(self, sec):
+        # calculate length of each anchor (text between <a></a> tags)
+        anchor_lengths = 0
+        anchor_texts = re.findall(r"<a.*?>(.*?)</a>", sec, re.IGNORECASE)
+        anchors = len(anchor_texts)
+        for element in anchor_texts:
+            anchor_lengths += len(element)
+            
+        # once we have counted them, we can strip them too
+        sec = re.sub(r"</?a.*?>", " ", sec)
+        length = len(sec)
+            
+        # calculate anchor density
+        try:
+            density = float(anchor_lengths) / float(length)
+        except:
+            density = 0
+
+        # retun anchor count, anchor density, and text stripped of anchor tags
+        return anchors, density, sec
+        
+
+    # returns number of words and avg word length
+    def __word_analysis(self):
+        words = self.text
+        words = re.sub(r"[^\w\s]", "", words)
+        words = words.split()
+
+        total_len = 0
+        num_words = len(words)
+
+        for word in words:
+            total_len += len(word)
+        
+        try:
+            avg_len = float(total_len) / float(num_words)
+        except:
+            avg_len = 0
+
+        return num_words, avg_len
+
+
+    # returns number of sentences and avg sentence length
+    def __sentence_analysis(self):
+        sentences = self.text
+        sentences = re.sub(r"[?!]", ".", sentences)
+        # most all sentences' periods are followed by a space
+        # not guaranteed, but vast majority are. if we dont do this
+        # things like abbreviations and numerical information will 
+        # create fake sentence divisions
+        sentences = sentences.split(". ")
+        
+        num_sentences = len(sentences)
+        total_len = 0
+
+        for sentence in sentences:
+            total_len += len(sentence)
+
+        try:
+            avg_len = float(total_len) / float(num_sentences)
+        except:
+            avg_len = 0
+
+        return num_sentences, avg_len
+
+
+    ####################
+    #                  #
+    # Accessor Methods #
+    #                  #
+    ####################
 
     def txt(self):
         return self.text
@@ -56,10 +132,22 @@ class Section(object):
         return self.length
 
     def anchor_count(self):
-        return self.anchors
+        return self.a_count
 
     def anchor_density(self):
-        return self.density
+        return self.a_density
+
+    def word_count(self):
+        return self.w_count
+
+    def avg_word_len(self):
+        return self.avg_w_len
+
+    def sentence_count(self):
+        return self.s_count
+
+    def avg_sentence_len(self):
+        return self.avg_s_len
 
 
 class Analyzer(object):
@@ -90,25 +178,11 @@ class Analyzer(object):
         html = re.split("</?div>", html)
 
         for item in html:
-            if len(item) > 0:
-                # calculate length of each anchor (text between <a></a> tags)
-                anchor_lengths = 0
-                anchor_texts = re.findall(r"<a.*?>(.*?)</a>", item, re.IGNORECASE)
-                anchors = len(anchor_texts)
-                for element in anchor_texts:
-                    anchor_lengths += len(element)
-                
-                # once we have counted them, we can strip them too
-                item = re.sub(r"</?a.*?>", " ", item)
-                length = len(item)
+            if len(item) > 1:
+                sec = Section(item)
+                if sec.len() > threshold:
+                    self.sections.append(sec)
 
-                # calculate anchor density
-                density = float(anchor_lengths) / float(length)
-
-                if length > threshold:
-                    # it meets the threshold, add a new section
-                    self.sections.append(Section(item, length, anchors, density))
-                                     
                 
     # threshold = minimum size compared to the biggest section size
     # if the largest section is 5000 characters, and the threshold is 50.0,
