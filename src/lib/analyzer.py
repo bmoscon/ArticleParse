@@ -43,13 +43,14 @@ import operator
 import re
 
 class Section(object):
-    def __init__(self, sec):
+    def __init__(self, sec, position):
+        self.pos = position
         # incoming section data should still have the anchor tags
         # so lets parse those out first
-        self.a_count, self.a_density, self.text = self.__anchor_analysis(sec)
+        self.__anchor_analysis(sec)
         self.length = len(self.text)
-        self.w_count, self.avg_w_len = self.__word_analysis()
-        self.s_count, self.avg_s_len = self.__sentence_analysis()
+        self.__word_analysis()
+        self.__sentence_analysis()
 
 
     # returns number of anchors and anchor density (length of anchors / length of section) 
@@ -71,8 +72,9 @@ class Section(object):
         except:
             density = 0
 
-        # retun anchor count, anchor density, and text stripped of anchor tags
-        return anchors, density, sec
+        self.a_count = anchors
+        self.a_density = density
+        self.text = sec
         
 
     # returns number of words and avg word length
@@ -81,18 +83,23 @@ class Section(object):
         words = re.sub(r"[^\w\s]", "", words)
         words = words.split()
 
+        upper_count = 0
         total_len = 0
         num_words = len(words)
 
         for word in words:
             total_len += len(word)
+            if word[0].isupper():
+                upper_count += 1
         
         try:
             avg_len = float(total_len) / float(num_words)
         except:
             avg_len = 0
 
-        return num_words, avg_len
+        self.w_count = num_words
+        self.avg_w_len = avg_len
+        self.u_count = upper_count
 
 
     # returns number of sentences and avg sentence length
@@ -104,7 +111,7 @@ class Section(object):
         # things like abbreviations and numerical information will 
         # create fake sentence divisions
         sentences = sentences.split(". ")
-        
+
         num_sentences = len(sentences)
         total_len = 0
 
@@ -116,7 +123,8 @@ class Section(object):
         except:
             avg_len = 0
 
-        return num_sentences, avg_len
+        self.s_count = num_sentences
+        self.avg_s_len = avg_len
 
 
     ####################
@@ -130,6 +138,12 @@ class Section(object):
 
     def len(self):
         return self.length
+
+    def position(self):
+        return self.pos
+        
+    def upper_count(self):
+        return self.u_count
 
     def anchor_count(self):
         return self.a_count
@@ -177,11 +191,13 @@ class Analyzer(object):
         # find all sections enclosed by <div> tags
         html = re.split("</?div>", html)
 
+        position = 0
         for item in html:
             if len(item) > 1:
-                sec = Section(item)
+                sec = Section(item, position)
                 if sec.len() > threshold:
                     self.sections.append(sec)
+            position += 1
 
                 
     # threshold = minimum size compared to the biggest section size
