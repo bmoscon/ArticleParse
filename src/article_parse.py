@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Copyright (C) 2013  Bryant Moscon - bmoscon@gmail.com
+Copyright (C) 2013-2014  Bryant Moscon - bmoscon@gmail.com
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to 
@@ -52,7 +52,7 @@ def analyze(url):
     # set up with URL (provided on command line)
     a = Analyzer(url = sys.argv[1])
     # parse with a section length threshold of 50 characters (including spaces)
-    a.parse_sections(threshold = 50)
+    a.parse_sections(threshold = 100)
 
     sections = a.get_main_sections()
 
