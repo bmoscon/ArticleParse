@@ -39,40 +39,34 @@ Copyright (C) 2013  Bryant Moscon - bmoscon@gmail.com
 """
 
 import re
-import urllib
+import urllib.request as urllib
 
 
 class HtmlParse(object):
-    def __init__(self, url = None, content = None, fp = None, initial_parse = True):
-        if url:
-            self.html = urllib.urlopen(url).read()
-        elif content:
+    def __init__(self, url = None, content = None, fp = None):
+        if content:
             self.html = content
         elif fp:
             with open(fp, "r") as f:
                 self.html = f.read()
+        elif url:
+            self.html = urllib.urlopen(url).read().decode("UTF-8", errors='ignore')
         else:
             raise TypeError("must supply a URL, File, or HTML content")
-
+            
         self.parsed = self.html
 
-        # perform initial parsing
-        if initial_parse:
-            self.__initial_parse()
 
-
-    def __initial_parse(self):
+    def remove_non_html(self):
         # remove linebreaks
         self.parsed = re.sub(r"\n+", "", self.parsed)
         self.parsed = re.sub(r"\r+", "", self.parsed)
+        self.parsed = re.sub(r"&#13;", "", self.parsed)
 
         # remove scripts, stylesheets, and comments
         self.parsed = re.sub(r"<!--.*?-->", "", self.parsed)
         self.parsed = re.sub(r"<(style).*?</\1>(?s)", "", self.parsed)
         self.parsed = re.sub(r"<(script).*?</\1>(?s)", " ", self.parsed)
-
-    def __consolidate_spacing(self):
-        self.parsed = re.sub(r"\s+", " ", self.parsed)
 
     # remove everything not included in the <body></body> tags
     def isolate_body(self):
@@ -99,7 +93,7 @@ class HtmlParse(object):
             tag = "<" + retain_list[i] + ">"
             self.parsed = re.sub(r"%s" %lookup_table[i], tag, self.parsed)
 
-        self.__consolidate_spacing()
+        self.parsed = re.sub(r"\s+", " ", self.parsed)
 
         
     # removes HTML entities. Obviously this is far from complete
@@ -144,12 +138,9 @@ class HtmlParse(object):
     # converts tags of one type to another
     # convert_list is the list of tags to convert to  and from
     # example: ["a", "b", "/a", "/b"] will convert <a> to <b> and </a> to </b>
-    def convert(self, convert_list):
-        i = 0
-        while i < len(convert_list):
-            self.parsed = re.sub(r"<%s.*?>" %convert_list[i], "<"+convert_list[i + 1]+">", 
-                                 self.parsed)
-            i += 2
+    def convert(self, c_list):
+        for i in range(0, len(c_list), 2):
+            self.parsed = re.sub(r"<%s.*?>" %c_list[i], "<"+c_list[i + 1]+">", self.parsed)
             
         
     def get_parsed(self):

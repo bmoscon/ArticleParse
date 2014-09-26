@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """
 Copyright (C) 2013  Bryant Moscon - bmoscon@gmail.com
  
@@ -45,7 +45,7 @@ from analyzer import Analyzer
 
 
 def usage(command):
-    print "usage:", command, " <URL>"
+    print("usage:", command, " <URL>")
 
 # Example of how one might use the analyzer module
 def analyze(url):
@@ -53,17 +53,11 @@ def analyze(url):
     a = Analyzer(url = sys.argv[1])
     # parse with a section length threshold of 50 characters (including spaces)
     a.parse_sections(threshold = 50)
-    # get all sections whose length is at least 5% of that of the main section
-    # and use a link density delta of 1%
-    sections = a.get_main_sections(threshold = 5.0, density_threshold = 0.01)
 
-    # get_main_sections will return all the text sections it thinks are relevant based
-    # on the thresholds it is given. They are in order of probability of being
-    # main text. sections is just a list of strings
-    
+    sections = a.get_main_sections()
+
     for item in sections:
-        print item
-        print "\n"
+        print(item)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

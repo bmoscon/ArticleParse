@@ -39,8 +39,8 @@ Copyright (C) 2013  Bryant Moscon - bmoscon@gmail.com
 """
 
 from htmlparse import HtmlParse
-import operator
 import re
+
 
 class Section(object):
     def __init__(self, sec, position):
@@ -59,18 +59,15 @@ class Section(object):
         anchor_lengths = 0
         anchor_texts = re.findall(r"<a.*?>(.*?)</a>", sec, re.IGNORECASE)
         anchors = len(anchor_texts)
-        for element in anchor_texts:
-            anchor_lengths += len(element)
+        anchor_lengths = sum(len(element) for element in anchor_texts)
             
         # once we have counted them, we can strip them too
         sec = re.sub(r"</?a.*?>", " ", sec)
         length = len(sec)
             
         # calculate anchor density
-        try:
-            density = float(anchor_lengths) / float(length)
-        except:
-            density = 0
+        density = 0 if length == 0 else float(anchor_lengths) / float(length)
+
 
         self.a_count = anchors
         self.a_density = density
@@ -87,15 +84,10 @@ class Section(object):
         total_len = 0
         num_words = len(words)
 
-        for word in words:
-            total_len += len(word)
-            if word[0].isupper():
-                upper_count += 1
+        total_len = sum(len(word) for word in words)
+        upper_count = sum(1 if word[0].isupper() else 0 for word in words)
         
-        try:
-            avg_len = float(total_len) / float(num_words)
-        except:
-            avg_len = 0
+        avg_len = 0 if num_words == 0 else float(total_len) / float(num_words)
 
         self.w_count = num_words
         self.avg_w_len = avg_len
@@ -115,13 +107,9 @@ class Section(object):
         num_sentences = len(sentences)
         total_len = 0
 
-        for sentence in sentences:
-            total_len += len(sentence)
-
-        try:
-            avg_len = float(total_len) / float(num_sentences)
-        except:
-            avg_len = 0
+        total_len = sum(len(sentence) for sentence in sentences)
+        
+        avg_len = 0 if num_sentences == 0 else float(total_len) / float(num_sentences)
 
         self.s_count = num_sentences
         self.avg_s_len = avg_len
@@ -166,15 +154,8 @@ class Section(object):
 
 class Analyzer(object):
     def __init__(self, url = None, content = None, fp = None):
-        if url:
-            self.parser = HtmlParse(url = url)
-        elif content:
-            self.parser = HtmlParse(content = content)
-        elif fp:
-            self.parser = HtmlParse(fp = fp)
-        else:
-            raise TypeError("must supply a URL, File, or HTML content")
-
+        self.parser = HtmlParse(url=url, content=content, fp=fp)
+        self.parser.remove_non_html()
         self.sections = []
 
     # threshold is the minimum length section to consider
@@ -185,7 +166,6 @@ class Analyzer(object):
         # convert spans to div, since they play the same role in our analysis
         self.parser.convert(["span", "div", "/span", "/div"])
         self.parser.decode_entities()
-
         html = self.parser.get_parsed()
 
         # find all sections enclosed by <div> tags
@@ -199,36 +179,47 @@ class Analyzer(object):
                     self.sections.append(sec)
             position += 1
 
-                
-    # threshold = minimum size compared to the biggest section size
-    # if the largest section is 5000 characters, and the threshold is 50.0,
-    # only sections with a size that are at least 2500 characters (50% of largest
-    # section size) will be retained
-    def get_main_sections(self, threshold, density_threshold):
-        # sort by length, then reverse so we are sorted in descending order
-        self.sections.sort(key = operator.attrgetter('length'))
-        self.sections.reverse()
+               
+    def __word_feature_classifier(self, prev, curr, next):
+        if curr.anchor_density() > 0.333:
+            return False
+        if prev.anchor_density() > 0.555:
+            if curr.word_count() > 40:
+                return True
+            elif next.word_count() > 17:
+                return True
+            else:
+                return False
+        else:
+            if curr.word_count() > 16:
+                return True
+            elif next.word_count() > 15:
+                return True
+            elif prev.word_count() > 4:
+                return True
+            else:
+                return False
+
         
-        base = self.sections[0].len();
-        base_anchor = self.sections[0].anchor_density()
-        
+    def get_main_sections(self):
         ret = []
 
-        for section in self.sections:
-            section_length = section.len()
-            percentage = float(section_length) / float(base) * 100.0
-            anchor_delta = abs(base_anchor - section.anchor_density())
-            if percentage >= threshold:
-                # excludes sections with anchor densities that differ by more than
-                # density_threshold from the base section. Reasoning is that the navigation 
-                # sections at the top and bottom of the page are typically long in length 
-                # (and would not be excluded due to the other thresholds) 
-                # but have very high link densities 
-                if anchor_delta < density_threshold:
-                    ret.append(section.txt())
+        for i in range(0, len(self.sections)):
+            curr = self.sections[i]
+            if i == 0:
+                prev = Section(" ", 0)
             else:
-                # since we are sorted, once we are failing the threshold test
-                # we can bail
-                break
+                prev = self.sections[i-1]
+            
+            if i == len(self.sections) - 1:
+                next = Section(" ", 0)
+            else:
+                next = self.sections[i + 1]
+
+            if self.__word_feature_classifier(prev, curr, next):
+                ret.append(self.sections[i].txt())
+
 
         return ret
+            
+            
