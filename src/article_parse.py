@@ -54,10 +54,11 @@ def analyze(url):
     # parse with a section length threshold of 50 characters (including spaces)
     a.parse_sections(threshold = 100)
 
-    sections = a.get_main_sections()
+    sections = a.analyze_sections()
 
     for item in sections:
-        print(item)
+        if item['probability'] >= 0.8:
+            print(item['content'])  
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
