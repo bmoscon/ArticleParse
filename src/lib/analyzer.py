@@ -41,9 +41,11 @@ Copyright (C) 2013-2014  Bryant Moscon - bmoscon@gmail.com
 from htmlparse import HtmlParse
 import re
 from stopwords import StopWords
-from itertools import chain
 
 
+# These are values that each section
+# must calculate and the values for which the 
+# analyzer must define thresholds
 ANCHOR_DENSITY = 'anchor_density'
 ANCHOR_COUNT = 'anchor_count'
 WORD_COUNT = 'word_count'
@@ -54,15 +56,20 @@ AVG_SENTENCE_LEN = 'avg_sentence_len'
 STOP_WORD_DENSITY = 'stop_word_density'
 
 
+# less than
 def lt(value, threshold):
     return value < threshold
 
+# greater than
 def gt(value, threshold):
     return value > threshold
 
+# between
 def bt(value, threshold):
     return value > threshold[0] and value < threshold[1]
 
+# determine if a value is within a margin of error
+# for a given threshold 
 def in_range(value, threshold, margin):
     if margin == 0:
         return False
@@ -75,6 +82,8 @@ def in_range(value, threshold, margin):
         return value < (threshold + threshold*margin) and value > (threshold - threshold*margin)
 
 
+# HTML page is divided into sections as determined 
+# by the analyzer (typically tags like DIV or SPAN)
 class Section(object):
     def __init__(self, sec, position):
         self.pos = position
@@ -95,7 +104,8 @@ class Section(object):
     def position(self):
         return self.pos    
         
-        
+    
+    # access the required member variables
     def access(self, member):
         if member == UPPER_COUNT:
             return self.upper_count
@@ -187,6 +197,7 @@ class Section(object):
 
 
 
+
 class Analyzer(object):
     def __init__(self, url = None, content = None, fp = None):
         self.parser = HtmlParse(url=url, content=content, fp=fp)
@@ -205,7 +216,12 @@ class Analyzer(object):
         
 
 
-    # threshold is the minimum length section to consider
+    # Parse the HTML into sections
+    # these are stored in the list, self.sections
+    # 
+    # threshold: integer value that specifies the minimum length of a section
+    #
+    # returns: nothing
     def parse_sections(self, threshold):
         self.parser.isolate_body()
         # retain these tags for analysis
@@ -297,7 +313,7 @@ class Analyzer(object):
     # For each section, call the individual classifier and the
     # neighbor classifier. 
     #
-    # returns: list of pairs. each pair contains the probability that the text is content and the text
+    # returns: list of dictionaries. each dict contains the probability that the text is content and the text
     def analyze_sections(self):
         ret = []
 
