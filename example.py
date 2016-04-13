@@ -15,7 +15,7 @@ def usage(command):
 def analyze(url):
     # set up with URL (provided on command line)
     a = Analyzer(url = sys.argv[1])
-    # parse with a section length threshold of 50 characters (including spaces)
+    # parse with a section length threshold of 100 characters (including spaces)
     a.parse_sections(threshold = 100)
 
     sections = a.analyze_sections()
