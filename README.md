@@ -16,4 +16,6 @@ Average Word Length
 Average Sentence Length
 Number of Sentences
 
-This is a work in progress. I have manually tested it on several news websites, but extensive testing still needs to be performed. 
+This is a work in progress. I have manually tested it on several news websites, but extensive testing still needs to be performed.
+
+Supports Python3
