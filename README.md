@@ -2,7 +2,8 @@ ArticleParse
 ============
 
 
-Library that strips boilerplate HTML from news articles and performs heuristic analysis to determine the body of the article. Specifically it is useful for removing boilerplate HTML from news articles and returning the actual text of the article.
+Library that strips boilerplate HTML from news articles and performs heuristic analysis to determine the body of the article. Ranks text sections of the website by probability of being news content.
+
 
 Currently uses for analysis:
 
