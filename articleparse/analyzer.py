@@ -162,9 +162,6 @@ class Section(object):
         self.avg_sentence_len = avg_len
 
 
-
-
-
 class Analyzer(object):
     def __init__(self, url = None, content = None, fp = None):
         self.parser = HtmlParse(url=url, content=content, fp=fp)

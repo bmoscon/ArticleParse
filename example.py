@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 Copyright (C) 2013-2016  Bryant Moscon - bmoscon@gmail.com
 
@@ -6,26 +7,26 @@ associated with this software.
 """
 
 from articleparse.analyzer import Analyzer
-import sys
+import argparse
 
-def usage(command):
-    print("usage:", command, " <URL>")
-
-# Example of how one might use the analyzer module
-def analyze(url):
-    # set up with URL (provided on command line)
-    a = Analyzer(url = sys.argv[1])
-    # parse with a section length threshold of 50 characters (including spaces)
-    a.parse_sections(threshold = 100)
-
-    sections = a.analyze_sections()
-
-    for item in sections:
-        if item['probability'] >= 0.8:
-            print(item['content'])  
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        usage(sys.argv[0])
-    else:
-        analyze(sys.argv[1])
+    parser = argparse.ArgumentParser()
+    g = parser.add_mutually_exclusive_group()
+    g.add_argument("--url", help="URL to parse")
+    g.add_argument("--file", help="file to parse")
+    parser.add_argument("--threshold", type=int, help="section length threshold", default=100)
+    parser.add_argument("--probability", type=float,
+                        help="section probability threshold", default=0.8)
+
+    args = parser.parse_args()
+    
+    url = args.url
+    fp = args.file
+
+    a = Analyzer(url = url, fp = fp)
+    a.parse_sections(threshold = args.threshold)
+    
+    for item in a.analyze_sections():
+        if item['probability'] >= args.probability:
+            print(item['content']) 
