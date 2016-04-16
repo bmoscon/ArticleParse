@@ -23,21 +23,22 @@ class HtmlParse(object):
             
         self.parsed = self.html
 
-
     def remove_non_html(self):
-        # remove linebreaks
+        '''
+        removes linebreaks, javascript, css, comments, etc
+        '''
         self.parsed = re.sub(r"\n+", "", self.parsed)
         self.parsed = re.sub(r"\r+", "", self.parsed)
         self.parsed = re.sub(r"&#13;", "", self.parsed)
-
-        # remove scripts, stylesheets, and comments
         self.parsed = re.sub(r"<!--.*?-->", "", self.parsed)
         self.parsed = re.sub(r"<(style).*?</\1>(?s)", "", self.parsed)
         self.parsed = re.sub(r"<(script).*?</\1>(?s)", " ", self.parsed)
 
-
-    # remove everything not included in the <body></body> tags
     def isolate_body(self):
+        '''
+        removes everything not enclosed in the body tags.
+        this also removes the body tags
+        '''
         body_start = self.parsed.find("<body")
         body_start = self.parsed.find(">", body_start)
         
@@ -45,10 +46,17 @@ class HtmlParse(object):
         
         self.parsed = self.parsed[body_start+1:body_end]
 
-
-    # remove all HTML tags.
-    # optionally retain the tags listed in retain_list
     def strip(self, retain_list = []):
+        '''
+        Removes all HTML tags except those specified in the retain list
+        
+        Parameters
+        ----------
+        retain_list: list of str
+            The HTML tags specified in the retain list will not be stripped
+        '''
+
+        # convert retain list to placeholders
         lookup_table = []
         for tag in retain_list:
             replace = "&tag-" + tag + ";"
@@ -66,9 +74,11 @@ class HtmlParse(object):
         # condense all whitespace
         self.parsed = re.sub(r"\s+", " ", self.parsed)
 
-        
-    # removes HTML entities. Obviously this is far from complete
     def decode_entities(self):
+        '''
+        remove HTML entities
+        (incomplete)
+        '''
         self.parsed = re.sub(r"&#0*34;", "\"", self.parsed)
         self.parsed = re.sub(r"&quot;", "\"", self.parsed)
         
@@ -112,27 +122,25 @@ class HtmlParse(object):
         self.parsed = re.sub(r"&Eacute;", "e", self.parsed)
         self.parsed = re.sub(r"&#233;", "e", self.parsed)
         self.parsed = re.sub(r"&eacute;", "e", self.parsed)
-        
-        
 
-    # converts tags of one type to another
-    # convert_list is the list of tags to convert to  and from
-    # example: ["a", "b", "/a", "/b"] will convert <a> to <b> and </a> to </b>
     def convert(self, c_list):
+        '''
+        Convert tags of one type to another
+
+        Parameters
+        ----------
+        c_list: list of str
+            a conversion mapping
+            example: ['a', 'b', '/a', '/b'] will convert <a> to <b> and </a> to </b>
+        '''
         for i in range(0, len(c_list), 2):
             self.parsed = re.sub(r"<%s.*?>" %c_list[i], "<"+c_list[i + 1]+">", self.parsed)
-           
-            
-    # returns the parsed HTML     
+
     def get_parsed(self):
         return self.parsed
 
-
-    # returns the original HTML
     def get_html(self):
         return self.html
 
-
-    # resets the parsed HTML back to the original
     def reset(self):
         self.parsed = self.html
