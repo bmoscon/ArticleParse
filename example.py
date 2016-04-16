@@ -12,7 +12,7 @@ import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    g = parser.add_mutually_exclusive_group()
+    g = parser.add_mutually_exclusive_group(required=True)
     g.add_argument("--url", help="URL to parse")
     g.add_argument("--file", help="file to parse")
     parser.add_argument("--threshold", type=int, help="section length threshold", default=100)
