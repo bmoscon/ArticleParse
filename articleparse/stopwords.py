@@ -3,11 +3,9 @@ Copyright (C) 2013-2014  Bryant Moscon - bmoscon@gmail.com
 
 Please see the LICENSE file for the terms and conditions 
 associated with this software.
- """
-
+"""
 
 class StopWords(object):
-    # Stop words list
     stop_words = set(["a",
                       "about",
                       "able"
@@ -136,6 +134,7 @@ class StopWords(object):
                       "you",
                       "your"
                       ])
+
     @staticmethod
     def is_stop_word(word):
         return word.lower() in StopWords.stop_words
