@@ -29,4 +29,4 @@ if __name__ == "__main__":
     
     for item in a.analyze_sections():
         if item['probability'] >= args.probability:
-            print(item['content']) 
+            print(item['content'])
