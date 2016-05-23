@@ -10,9 +10,11 @@ import re
 from articleparse.stopwords import StopWords
 
 
-# These are values that each section
-# must calculate and the values for which the 
-# analyzer must define thresholds
+'''
+These are values that each section
+must calculate and the values for which the 
+analyzer must define thresholds
+'''
 ANCHOR_DENSITY = 'anchor_density'
 ANCHOR_COUNT = 'anchor_count'
 WORD_COUNT = 'word_count'
@@ -23,21 +25,20 @@ AVG_SENTENCE_LEN = 'avg_sentence_len'
 STOP_WORD_DENSITY = 'stop_word_density'
 
 
-# less than
 def lt(value, threshold):
     return value < threshold
 
-# greater than
 def gt(value, threshold):
     return value > threshold
 
-# between
 def bt(value, threshold):
     return value > threshold[0] and value < threshold[1]
 
-# determine if a value is within a margin of error
-# for a given threshold 
 def in_range(value, threshold, margin):
+    '''
+    Determine if a value is within a margin of error
+    for a given threshold.
+    '''
     if margin == 0:
         return False
     if hasattr(threshold, '__iter__'):
@@ -49,30 +50,27 @@ def in_range(value, threshold, margin):
         return value < (threshold + threshold*margin) and value > (threshold - threshold*margin)
 
 
-# HTML page is divided into sections as determined 
-# by the analyzer (typically tags like DIV or SPAN)
 class Section(object):
+    '''
+    A section of an article as demarcated by HTML tags (div, span, etc). 
+    Contains only text, punctuation and HTML anchors
+    '''
     def __init__(self, sec, position):
         self.pos = position
-        # incoming section data should still have the anchor tags
-        # so lets parse those out first
         self.__anchor_analysis(sec)
         self.length = len(self.text)
         self.__word_analysis()
         self.__sentence_analysis()
-        
-    
+
     def txt(self):
         return self.text
-    
+
     def len(self):
         return self.length
-        
+
     def position(self):
-        return self.pos    
-        
-    
-    # access the required member variables
+        return self.pos
+
     def access(self, member):
         if member == UPPER_COUNT:
             return self.upper_count
@@ -93,11 +91,13 @@ class Section(object):
         else:
             raise TypeError("Bad Member")
 
-
-
-    # returns number of anchors and anchor density (length of anchors / length of section) 
     def __anchor_analysis(self, sec):
-        # calculate length of each anchor (text between <a></a> tags)
+        '''
+        Performs analysis of the anchors in the section.
+        Computes:
+        * Count
+        * Density
+        '''
         anchor_lengths = 0
         anchor_texts = re.findall(r"<a.*?>(.*?)</a>", sec, re.IGNORECASE)
         anchors = len(anchor_texts)
@@ -114,11 +114,17 @@ class Section(object):
         self.anchor_count = anchors
         self.anchor_density = density
         self.text = sec
-        
 
-    # returns number of words and avg word length
-    # and performs other word analysis
     def __word_analysis(self):
+        '''
+        Analysis of words in the section's text.
+        Computes:
+        * Word count
+        * Average word length
+        * Uppercase word count
+        * Stop word density
+        '''
+
         words = self.text
         words = re.sub(r"[^\w\s]", "", words)
         words = words.split()
@@ -136,13 +142,16 @@ class Section(object):
         self.avg_word_len = avg_len
         self.upper_count = upper_count
         
-        # stop word analysis
         num_stop_words = sum(1 if StopWords.is_stop_word(word) else 0 for word in words)
         self.stop_word_density = 0 if num_words == 0 else float(num_stop_words / num_words)
 
-
-    # returns number of sentences and avg sentence length
     def __sentence_analysis(self):
+        '''
+        Sentence analysis. 
+        Computes:
+        * Number of sentences
+        * Average sentence length (in terms of characters, not words)
+        '''
         sentences = self.text
         sentences = re.sub(r"[?!]", ".", sentences)
         # most all sentences' periods are followed by a space
@@ -168,11 +177,14 @@ class Analyzer(object):
         self.parser.remove_non_html()
         self.sections = []
         
-        # for each text feature, specify a threshold, a comparison, and a range
-        # example: 'word_count': [50, '>', 0.1] means that any word count less than 50 is considered
-        # to be boiler plate, anything greater than 50 is content. The range is a percentage meaning that
-        # anything within 10% of the threshold (so in this case +- 5 is the range 45 to 55 inclusive)
-        # gets a partial point. A range of 0 means to ignore the range and not assign partial points
+        '''
+        for each text feature, specify a threshold, a comparison, and a range
+        example: 'word_count': [50, '>', 0.1] means that any word count less than 50 is considered
+        to be boiler plate, anything greater than 50 is content. The range is a percentage 
+        meaning that anything within 10% of the threshold (so in this case +- 5 is the range 
+        45 to 55 inclusive) gets a partial point. A range of 0 means to ignore the range 
+        and not assign partial points
+        '''
         self.classification = {ANCHOR_DENSITY: [0.333, lt, 0.1],
                                WORD_COUNT: [40, gt, 0.1],
                                STOP_WORD_DENSITY: [[.30, .566], bt, 0.02]
