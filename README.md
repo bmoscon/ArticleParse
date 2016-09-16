@@ -1,6 +1,8 @@
 ArticleParse
 ============
 
+[![License](https://img.shields.io/badge/license-XFree86-blue.svg)](LICENSE)
+
 
 Library that strips boilerplate HTML from news articles and performs heuristic analysis to determine the body of the article. Ranks text sections of the website by probability of being news content.
 
