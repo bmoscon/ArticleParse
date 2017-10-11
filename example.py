@@ -1,16 +1,21 @@
 #!/usr/bin/python3
 """
-Copyright (C) 2013-2016  Bryant Moscon - bmoscon@gmail.com
+Copyright (C) 2013-2017  Bryant Moscon - bmoscon@gmail.com
 
-Please see the LICENSE file for the terms and conditions 
+Please see the LICENSE file for the terms and conditions
 associated with this software.
 """
-
-from articleparse.analyzer import Analyzer
 import argparse
+from articleparse import Analyzer
 
 
-if __name__ == "__main__":
+def main():
+    """
+    prompt user to enter a url or a file
+
+    outputs a list of "sections" that have been determined to be
+    non boilerplate text
+    """
     parser = argparse.ArgumentParser()
     g = parser.add_mutually_exclusive_group(required=True)
     g.add_argument("--url", help="URL to parse")
@@ -30,3 +35,7 @@ if __name__ == "__main__":
     for item in a.analyze_sections():
         if item['probability'] >= args.probability:
             print(item['content'])
+
+
+if __name__ == "__main__":
+    main()
