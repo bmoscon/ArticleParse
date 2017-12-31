@@ -4,7 +4,7 @@ from setuptools import find_packages
 
 setup(
     name="articleparse",
-    version="0.2.0",
+    version="0.2.1",
     author="Bryant Moscon",
     author_email="bmoscon@gmail.com",
     description=("Heuristic text extraction from news articles"),
