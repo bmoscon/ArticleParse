@@ -8,7 +8,7 @@ setup(
     author="Bryant Moscon",
     author_email="bmoscon@gmail.com",
     description=("Heuristic text extraction from news articles"),
-    license="GPL",
+    license="XFree86",
     keywords=["text extraction", ],
     url="https://github.com/bmoscon/articleparse",
     packages=find_packages(exclude=['tests']),
